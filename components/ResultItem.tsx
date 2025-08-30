@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Post } from '../types';
 import { AcademicCapIcon, BookmarkIcon, ClipboardCopyIcon, UserRemoveIcon, XCircleIcon } from './icons';
@@ -8,15 +7,42 @@ interface ResultItemProps {
   keywords: string[];
 }
 
-const highlightKeywords = (text: string, keywords: string[]) => {
-    if (!keywords.length) return text;
-    const regex = new RegExp(`(${keywords.join('|')})`, 'gi');
-    return text.split(regex).map((part, index) => 
-        regex.test(part) ? (
-            <span key={index} className="bg-yellow-200 rounded px-1 py-0.5">{part}</span>
-        ) : (
-            part
-        )
+const highlightKeywords = (text: string, keywords: string[]): React.ReactNode => {
+    if (!keywords || keywords.length === 0) {
+        return text;
+    }
+
+    // Escape special characters for RegExp and filter out empty/whitespace-only keywords
+    const nonEmptyKeywords = keywords.filter(kw => kw.trim() !== '');
+    if (nonEmptyKeywords.length === 0) {
+        return text;
+    }
+    
+    const escapedKeywords = nonEmptyKeywords.map(keyword =>
+        keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    );
+
+    const regex = new RegExp(`(${escapedKeywords.join('|')})`, 'gi');
+    const parts = text.split(regex);
+
+    return (
+        <>
+            {parts.map((part, index) => {
+                // A case-insensitive check to see if the part is one of the keywords
+                const isKeyword = nonEmptyKeywords.some(
+                    keyword => keyword.toLowerCase() === part.toLowerCase()
+                );
+
+                if (isKeyword) {
+                    return (
+                        <mark key={index} className="bg-yellow-200 not-italic font-semibold rounded px-1 py-0.5">
+                            {part}
+                        </mark>
+                    );
+                }
+                return part;
+            })}
+        </>
     );
 };
 
