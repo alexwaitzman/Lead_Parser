@@ -4,7 +4,7 @@
   "private": true,
   "description": "An application to parse and display social media messages based on keywords.",
   "scripts": {
-    "build": "mkdir public && cp -r index.html index.tsx App.tsx types.ts constants.ts components services public/",
+    "build": "echo 'Static site - no build step required.'",
     "dev": "echo 'No dev script needed for this no-build setup. Just serve index.html.' && exit 0"
   },
   "dependencies": {
