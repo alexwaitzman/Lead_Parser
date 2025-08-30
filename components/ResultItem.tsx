@@ -8,42 +8,75 @@ interface ResultItemProps {
 }
 
 const highlightKeywords = (text: string, keywords: string[]): React.ReactNode => {
-    if (!keywords || keywords.length === 0) {
+    if (!keywords?.length || !text?.trim()) {
         return text;
     }
 
-    // Escape special characters for RegExp and filter out empty/whitespace-only keywords
-    const nonEmptyKeywords = keywords.filter(kw => kw.trim() !== '');
-    if (nonEmptyKeywords.length === 0) {
+    const filteredKeywords = keywords.filter(kw => kw.trim() !== '');
+    if (filteredKeywords.length === 0) {
         return text;
     }
+
+    // 1. Find all matches for all keywords.
+    const matches: Array<{ start: number; end: number }> = [];
+    for (const keyword of filteredKeywords) {
+        const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escapedKeyword, 'gi');
+        let match;
+        while ((match = regex.exec(text)) !== null) {
+            matches.push({ start: match.index, end: match.index + match[0].length });
+        }
+    }
+
+    if (matches.length === 0) {
+        return text;
+    }
+
+    // 2. Merge overlapping intervals.
+    // Sort by start index to process intervals in order.
+    matches.sort((a, b) => a.start - b.start);
     
-    const escapedKeywords = nonEmptyKeywords.map(keyword =>
-        keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    );
+    const mergedIntervals: Array<{ start: number; end: number }> = [];
+    let currentInterval = matches[0];
 
-    const regex = new RegExp(`(${escapedKeywords.join('|')})`, 'gi');
-    const parts = text.split(regex);
+    for (let i = 1; i < matches.length; i++) {
+        const nextInterval = matches[i];
+        if (nextInterval.start < currentInterval.end) {
+            // Overlap detected: extend the current interval if the next one ends later.
+            currentInterval.end = Math.max(currentInterval.end, nextInterval.end);
+        } else {
+            // No overlap: push the completed interval and start a new one.
+            mergedIntervals.push(currentInterval);
+            currentInterval = nextInterval;
+        }
+    }
+    mergedIntervals.push(currentInterval);
 
-    return (
-        <>
-            {parts.map((part, index) => {
-                // A case-insensitive check to see if the part is one of the keywords
-                const isKeyword = nonEmptyKeywords.some(
-                    keyword => keyword.toLowerCase() === part.toLowerCase()
-                );
 
-                if (isKeyword) {
-                    return (
-                        <mark key={index} className="bg-yellow-200 not-italic font-semibold rounded px-1 py-0.5">
-                            {part}
-                        </mark>
-                    );
-                }
-                return part;
-            })}
-        </>
-    );
+    // 3. Build the React nodes from the merged intervals.
+    const result: React.ReactNode[] = [];
+    let lastIndex = 0;
+
+    mergedIntervals.forEach((interval, i) => {
+        // Add the text part before the current match
+        if (interval.start > lastIndex) {
+            result.push(text.substring(lastIndex, interval.start));
+        }
+        // Add the highlighted part
+        result.push(
+            <mark key={i} className="bg-yellow-200 not-italic font-semibold rounded px-1 py-0.5">
+                {text.substring(interval.start, interval.end)}
+            </mark>
+        );
+        lastIndex = interval.end;
+    });
+
+    // Add the remaining text after the last match
+    if (lastIndex < text.length) {
+        result.push(text.substring(lastIndex));
+    }
+
+    return <>{result}</>;
 };
 
 

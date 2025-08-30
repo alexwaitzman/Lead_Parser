@@ -1,6 +1,13 @@
 
 import type { Post, Platform } from '../types';
 
+/**
+ * Fetches social media posts from the backend API based on keywords and selected platforms.
+ * @param keywords - An array of keywords to search for.
+ * @param platforms - An array of social media platforms to search within (e.g., 'VK', 'Telegram').
+ * @returns A promise that resolves to an array of Post objects.
+ * @throws Will throw an error if the API request fails or the response is not ok.
+ */
 export const fetchSocialMediaPosts = async (keywords: string[], platforms: Platform[]): Promise<Post[]> => {
   if (keywords.length === 0 || platforms.length === 0) {
       return [];
