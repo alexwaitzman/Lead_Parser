@@ -1,14 +1,19 @@
 
 import React, { useState } from 'react';
 import { PlusIcon, ChevronDownIcon, CloseIcon, CalendarIcon } from './icons';
+import type { Platform } from '../types';
 
 interface FiltersProps {
   keywords: string[];
   onKeywordsChange: (keywords: string[]) => void;
+  selectedPlatforms: Platform[];
+  onPlatformsChange: (platforms: Platform[]) => void;
 }
 
-const FilterButton: React.FC<{ children: React.ReactNode; active?: boolean; hasDropdown?: boolean }> = ({ children, active, hasDropdown }) => (
-  <button className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border rounded-full transition-colors ${
+const FilterButton: React.FC<{ children: React.ReactNode; active?: boolean; hasDropdown?: boolean; onClick?: () => void }> = ({ children, active, hasDropdown, onClick }) => (
+  <button 
+    onClick={onClick}
+    className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium border rounded-full transition-colors ${
       active
         ? 'bg-green-600 text-white border-green-600'
         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
@@ -28,8 +33,14 @@ const TimeButton: React.FC<{ children: React.ReactNode; active?: boolean }> = ({
   </button>
 );
 
+const platformOptions: { id: Platform; name: string }[] = [
+    { id: 'VK', name: 'ВКонтакте' },
+    { id: 'Telegram', name: 'Telegram' },
+    { id: 'Facebook', name: 'Facebook' },
+    { id: 'YouDo', name: 'YouDo' },
+];
 
-const Filters: React.FC<FiltersProps> = ({ keywords, onKeywordsChange }) => {
+const Filters: React.FC<FiltersProps> = ({ keywords, onKeywordsChange, selectedPlatforms, onPlatformsChange }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [newKeyword, setNewKeyword] = useState('');
 
@@ -49,6 +60,13 @@ const Filters: React.FC<FiltersProps> = ({ keywords, onKeywordsChange }) => {
       e.preventDefault();
       addKeyword();
     }
+  };
+
+  const handlePlatformToggle = (platformId: Platform) => {
+    const newSelection = selectedPlatforms.includes(platformId)
+      ? selectedPlatforms.filter(p => p !== platformId)
+      : [...selectedPlatforms, platformId];
+    onPlatformsChange(newSelection);
   };
 
 
@@ -108,7 +126,15 @@ const Filters: React.FC<FiltersProps> = ({ keywords, onKeywordsChange }) => {
           <div className="mt-4 flex flex-wrap items-center gap-3">
              <FilterButton hasDropdown>Локация</FilterButton>
              <FilterButton hasDropdown>Источник</FilterButton>
-             <FilterButton active>ВКонтакте</FilterButton>
+             {platformOptions.map(platform => (
+                <FilterButton
+                    key={platform.id}
+                    active={selectedPlatforms.includes(platform.id)}
+                    onClick={() => handlePlatformToggle(platform.id)}
+                >
+                    {platform.name}
+                </FilterButton>
+             ))}
              <FilterButton hasDropdown>Категория</FilterButton>
              
              <div className="flex items-center space-x-2 bg-gray-100 p-1 rounded-full">

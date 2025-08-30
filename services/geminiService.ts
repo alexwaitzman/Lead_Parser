@@ -1,8 +1,8 @@
 
-import type { Post } from '../types';
+import type { Post, Platform } from '../types';
 
-export const fetchSocialMediaPosts = async (keywords: string[]): Promise<Post[]> => {
-  if (keywords.length === 0) {
+export const fetchSocialMediaPosts = async (keywords: string[], platforms: Platform[]): Promise<Post[]> => {
+  if (keywords.length === 0 || platforms.length === 0) {
       return [];
   }
 
@@ -12,7 +12,7 @@ export const fetchSocialMediaPosts = async (keywords: string[]): Promise<Post[]>
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ keywords }),
+      body: JSON.stringify({ keywords, platforms }),
     });
 
     if (!response.ok) {
