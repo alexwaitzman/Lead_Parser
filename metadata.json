@@ -1,0 +1,5 @@
+{
+  "name": "Social Media Message Parser",
+  "description": "An application to parse and display social media messages based on keywords, designed to find users looking for services while filtering out advertisers. It simulates parsing from platforms like VK, Telegram, Facebook, and YouDo.",
+  "requestFramePermissions": []
+}
